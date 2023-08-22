@@ -1,13 +1,14 @@
 module PureScript.CST.Types where
 
 import Prelude
+import Prim hiding (Row, Type)
 
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Either (Either)
+import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Tuple (Tuple)
-import Prim hiding (Row, Type)
 
 newtype ModuleName = ModuleName String
 
@@ -30,15 +31,20 @@ data Comment l
   | Space Int
   | Line l Int
 
+derive instance genericComment :: Generic (Comment l) _
+
 data LineFeed
   = LF
   | CRLF
+
+derive instance genericLineFeed :: Generic LineFeed _
 
 data SourceStyle
   = ASCII
   | Unicode
 
 derive instance eqSourceStyle :: Eq SourceStyle
+derive instance genericSourceStyle :: Generic SourceStyle _
 
 data IntValue
   = SmallInt Int
@@ -83,6 +89,7 @@ data Token
   | TokLayoutEnd Int
 
 derive instance eqToken :: Eq Token
+derive instance genericToken :: Generic Token _
 
 type SourceToken =
   { range :: SourceRange
@@ -187,6 +194,8 @@ data Type e
   | TypeParens (Wrapped (Type e))
   | TypeError e
 
+derive instance genericType :: Generic (Type e) _
+
 data TypeVarBinding a e
   = TypeVarKinded (Wrapped (Labeled a (Type e)))
   | TypeVarName a
@@ -232,9 +241,13 @@ data Export e
   | ExportModule SourceToken (Name ModuleName)
   | ExportError e
 
+derive instance genericExport :: Generic (Export e) _
+
 data DataMembers
   = DataAll SourceToken
   | DataEnumerated (Delimited (Name Proper))
+
+derive instance genericDataMembers :: Generic DataMembers _
 
 data Declaration e
   = DeclData (DataHead e) (Maybe (Tuple SourceToken (Separated (DataCtor e))))
@@ -250,6 +263,8 @@ data Declaration e
   | DeclForeign SourceToken SourceToken (Foreign e)
   | DeclRole SourceToken SourceToken (Name Proper) (NonEmptyArray (Tuple SourceToken Role))
   | DeclError e
+
+derive instance genericDeclaration :: Generic (Declaration e) _
 
 newtype Instance e = Instance
   { head :: InstanceHead e
@@ -278,6 +293,8 @@ data Import e
   | ImportTypeOp SourceToken (Name Operator)
   | ImportClass SourceToken (Name Proper)
   | ImportError e
+
+derive instance genericImport :: Generic (Import e) _
 
 type DataHead e =
   { keyword :: SourceToken
@@ -317,9 +334,13 @@ data Fixity
   | Infixl
   | Infixr
 
+derive instance genericFixity :: Generic Fixity _
+
 data FixityOp
   = FixityValue (QualifiedName (Either Ident Proper)) SourceToken (Name Operator)
   | FixityType SourceToken (QualifiedName Proper) SourceToken (Name Operator)
+
+derive instance genericFixityOp :: Generic FixityOp _
 
 type FixityFields =
   { keyword :: Tuple SourceToken Fixity
@@ -336,6 +357,8 @@ type ValueBindingFields e =
 data Guarded e
   = Unconditional SourceToken (Where e)
   | Guarded (NonEmptyArray (GuardedExpr e))
+
+derive instance genericGuarded :: Generic (Guarded e) _
 
 newtype GuardedExpr e = GuardedExpr
   { bar :: SourceToken
@@ -358,10 +381,14 @@ data Foreign e
   | ForeignData SourceToken (Labeled (Name Proper) (Type e))
   | ForeignKind SourceToken (Name Proper)
 
+derive instance genericForeign :: Generic (Foreign e) _
+
 data Role
   = Nominal
   | Representational
   | Phantom
+
+derive instance genericRole :: Generic Role _
 
 data Expr e
   = ExprHole (Name Ident)
@@ -392,17 +419,25 @@ data Expr e
   | ExprAdo (AdoBlock e)
   | ExprError e
 
+derive instance genericExpr :: Generic (Expr e) _
+
 data AppSpine f e
   = AppType SourceToken (Type e)
   | AppTerm (f e)
+
+derive instance genericAppSpine :: Generic (AppSpine f e) _
 
 data RecordLabeled a
   = RecordPun (Name Ident)
   | RecordField (Name Label) SourceToken a
 
+derive instance genericRecordLabeled :: Generic (RecordLabeled a) _
+
 data RecordUpdate e
   = RecordUpdateLeaf (Name Label) SourceToken (Expr e)
   | RecordUpdateBranch (Name Label) (DelimitedNonEmpty (RecordUpdate e))
+
+derive instance genericRecordUpdate :: Generic (RecordUpdate e) _
 
 type RecordAccessor e =
   { expr :: Expr e
@@ -453,6 +488,8 @@ data LetBinding e
   | LetBindingPattern (Binder e) SourceToken (Where e)
   | LetBindingError e
 
+derive instance genericLetBinding :: Generic (LetBinding e) _
+
 type DoBlock e =
   { keyword :: SourceToken
   , statements :: NonEmptyArray (DoStatement e)
@@ -487,3 +524,5 @@ data Binder e
   | BinderTyped (Binder e) SourceToken (Type e)
   | BinderOp (Binder e) (NonEmptyArray (Tuple (QualifiedName Operator) (Binder e)))
   | BinderError e
+
+derive instance genericBinder :: Generic (Binder e) _
