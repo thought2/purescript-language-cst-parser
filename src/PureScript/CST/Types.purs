@@ -52,6 +52,7 @@ data IntValue
   | BigHex String
 
 derive instance eqIntValue :: Eq IntValue
+derive instance genericIntValue :: Generic IntValue _
 
 data Token
   = TokLeftParen
@@ -173,6 +174,8 @@ type DelimitedNonEmpty a = Wrapped (Separated a)
 data OneOrDelimited a
   = One a
   | Many (DelimitedNonEmpty a)
+
+derive instance genericOneOrDelimited :: Generic (OneOrDelimited a) _
 
 data Type e
   = TypeVar (Name Ident)
